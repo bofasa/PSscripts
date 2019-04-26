@@ -20,7 +20,7 @@ Param(
     [Parameter(Mandatory=$true)]
     [string]$UserName=$env:USERNAME,
     [string]$Server = "192.200.9.223",
-    [string]$ComputerName = "localhost",
+    [string]$ComputerName = "localhost"
 )
 
 function main {
@@ -28,7 +28,11 @@ function main {
     $User_Documents = "C:\users\$UserName\Documents\"
     $User_Desktop = "C:\users\$UserName\Desktop\"
 
-    $url="\\$Server\Users\monitoreo\Documents\COMPARTIDO\DATAMART\"    
+    $url="\\$Server\Users\monitoreo\Documents\COMPARTIDO\DATAMART\"
+
+    Create-Folder -Folder $InstallDir -Path $User_Documents
+    Download -From $url -To "$User_Documents\$InstallDir"
+    Windows-Register -Folder $InstallDir -UserName $UserName
 }
 
 
@@ -41,12 +45,11 @@ function Create-Folder {
         New-Item -Path $Path -ItemType Directory -Name $Folder -Force
     }
     Get-Item -Path "$Path\$Folder"
-    return "$Path\$Folder"
 }
 
 
 
-# # Copia DATAMART en la Carpeta Documentos del usuario
+# Copia DATAMART en la Carpeta Documentos del usuario
 
 function Download {
     param (
@@ -61,9 +64,10 @@ function Download {
 
 function Windows-Register {
     param (
-        [string]$Dir = $Folder
+        [string]$Folder,
+        [string]$UserName
     )
-    $RegKeyDatamart ="HKCU:\Software\VB and VBA Program Settings\$Dir\Variables Globales"
+    $RegKeyDatamart ="HKCU:\Software\VB and VBA Program Settings\$Folder\Variables Globales"
 
     if (-Not (Test-Path -Path $RegKeyDatamart -ErrorAction SilentlyContinue)){ New-Item -Path $RegKeyDatamart -Force}
 
@@ -82,6 +86,7 @@ function Windows-Register {
         Set-ItemProperty -Path $RegKeyDatamart -Name "db_archivo" -Value "rgn_BI-DM.dsn" -Force
     }
 
+    Write-Host ""
     Get-ItemProperty -Path $RegKeyDatamart | Format-List -Property *
 }
 
@@ -98,3 +103,4 @@ function Make-SymLink {
     }
 }
 
+main
