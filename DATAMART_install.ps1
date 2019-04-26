@@ -30,11 +30,19 @@ $path = "$PathBase\$Folder"
 
 $url="\\$Server\Users\monitoreo\Documents\COMPARTIDO\DATAMART\"
 
-if ( -Not (Test-Path -Path $path -ErrorAction SilentlyContinue)) {
-    New-Item -Path $PathBase -ItemType Directory -Name $Folder -Force
+function Create-Folder {
+    param (
+        [string]$Folder,
+        [string]$Path
+    )
+    if ( -Not (Test-Path -Path $Path -ErrorAction SilentlyContinue)) {
+        New-Item -Path $Path -ItemType Directory -Name $Folder -Force
+    }
+    
+    return (Get-Item -Path "$Path\$Folder")
 }
 
-Get-Item -Path $path
+
 
 # # Copia DATAMART en la Carpeta Documentos del usuario
 
@@ -75,13 +83,16 @@ function Windows-Register {
     return (Get-ItemProperty -Path $RegKeyDatamart | Format-List -Property *)
 }
 
+function Make-SymLink {
+    param (
+        [string]$Destination = $Desktop
+    )
+    Remove-Item -Path "$Destination\DATAMART Menu" -Force -ErrorAction SilentlyContinue
 
-
-Remove-Item -Path "$Desktop\DATAMART Menu" -Force -ErrorAction SilentlyContinue
-
-if (-Not (Get-Item -Path "$Desktop\DATAMART Menu" -ErrorAction SilentlyContinue)){
-    New-Item -ItemType SymbolicLink -Path $Desktop -Name "DATAMART Menu" -Value "$path\menu.xlsm" -Force
-} else {
-    Write-Host "Acceso Directo ya existe"
+    if (-Not (Get-Item -Path "$Destination\DATAMART Menu" -ErrorAction SilentlyContinue)){
+        New-Item -ItemType SymbolicLink -Path $Destination -Name "DATAMART Menu" -Value "$path\menu.xlsm" -Force
+    } else {
+        Write-Host "Acceso Directo ya existe"
+    }
 }
 
