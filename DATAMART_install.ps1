@@ -19,7 +19,8 @@
 Param(
     [Parameter(Mandatory=$true)]
     [string]$UserName=$env:USERNAME,
-    [string]$Server = "192.200.9.223"
+    [string]$Server = "192.200.9.223",
+    [string]$ComputerName = "localhost"
 )
 $Folder = "reportes"
 $PathBase = "C:\users\$UserName\Documents\"
@@ -36,31 +37,45 @@ if ( -Not (Test-Path -Path $path -ErrorAction SilentlyContinue)) {
 Get-Item -Path $path
 
 # # Copia DATAMART en la Carpeta Documentos del usuario
-Robocopy.exe $url $path * /b /s
-#Copy-Item -Path "$url\*" -Destination $path -Recurse -ErrorAction SilentlyContinue
+
+function Download {
+    param (
+        [string]$From = $url,
+        [string]$To = $path
+    )
+    Robocopy.exe $From $to * /b /s
+}
+
 
 # Reg
-#$RegKeyDatamart = "HKCU:\Software\VB and VBA Program Settings\$Folder" 
-$RegKeyDatamart ="HKCU:\Software\VB and VBA Program Settings\$Folder\Variables Globales"
 
-if (-Not (Test-Path -Path $RegKeyDatamart -ErrorAction SilentlyContinue)){ New-Item -Path $RegKeyDatamart -Force}
+function Windows-Register {
+    param (
+        [string]$Dir = $Folder
+    )
+    $RegKeyDatamart ="HKCU:\Software\VB and VBA Program Settings\$Dir\Variables Globales"
 
-$property = Get-ItemProperty -Path $RegKeyDatamart -Name "empresa_ubicacion" -ErrorAction SilentlyContinue
+    if (-Not (Test-Path -Path $RegKeyDatamart -ErrorAction SilentlyContinue)){ New-Item -Path $RegKeyDatamart -Force}
 
-if ( -Not $property){
-    New-ItemProperty -Path $RegKeyDatamart -Name "empresa_ubicacion" -Value "C:\Users\$UserName\Documents\$Folder\" -Force
-} else {
-    Set-ItemProperty -Path $RegKeyDatamart -Name "empresa_ubicacion" -Value "C:\Users\$UserName\Documents\$Folder\" -Force
+    $property = Get-ItemProperty -Path $RegKeyDatamart -Name "empresa_ubicacion" -ErrorAction SilentlyContinue
+
+    if ( -Not $property){
+        New-ItemProperty -Path $RegKeyDatamart -Name "empresa_ubicacion" -Value "C:\Users\$UserName\Documents\$Folder\" -Force
+    } else {
+        Set-ItemProperty -Path $RegKeyDatamart -Name "empresa_ubicacion" -Value "C:\Users\$UserName\Documents\$Folder\" -Force
+    }
+
+    $property = Get-ItemProperty -Path $RegKeyDatamart -Name "db_archivo" -ErrorAction SilentlyContinue
+    if ( -Not $property){
+        New-ItemProperty -Path $RegKeyDatamart -Name "db_archivo" -Value "rgn_BI-DM.dsn" -Force
+    } else {
+        Set-ItemProperty -Path $RegKeyDatamart -Name "db_archivo" -Value "rgn_BI-DM.dsn" -Force
+    }
+
+    return (Get-ItemProperty -Path $RegKeyDatamart | Format-List -Property *)
 }
 
-$property = Get-ItemProperty -Path $RegKeyDatamart -Name "db_archivo" -ErrorAction SilentlyContinue
-if ( -Not $property){
-    New-ItemProperty -Path $RegKeyDatamart -Name "db_archivo" -Value "rgn_BI-DM.dsn" -Force
-} else {
-    Set-ItemProperty -Path $RegKeyDatamart -Name "db_archivo" -Value "rgn_BI-DM.dsn" -Force
-}
 
-Get-ItemProperty -Path $RegKeyDatamart | Format-List -Property *
 
 Remove-Item -Path "$Desktop\DATAMART Menu" -Force -ErrorAction SilentlyContinue
 
