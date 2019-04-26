@@ -20,15 +20,17 @@ Param(
     [Parameter(Mandatory=$true)]
     [string]$UserName=$env:USERNAME,
     [string]$Server = "192.200.9.223",
-    [string]$ComputerName = "localhost"
+    [string]$ComputerName = "localhost",
 )
-$Folder = "reportes"
-$PathBase = "C:\users\$UserName\Documents\"
-$Desktop = "C:\users\$UserName\Desktop\"
 
-$path = "$PathBase\$Folder"
+function main {
+    $InstallDir = "reportes"
+    $User_Documents = "C:\users\$UserName\Documents\"
+    $User_Desktop = "C:\users\$UserName\Desktop\"
 
-$url="\\$Server\Users\monitoreo\Documents\COMPARTIDO\DATAMART\"
+    $url="\\$Server\Users\monitoreo\Documents\COMPARTIDO\DATAMART\"    
+}
+
 
 function Create-Folder {
     param (
@@ -38,8 +40,8 @@ function Create-Folder {
     if ( -Not (Test-Path -Path $Path -ErrorAction SilentlyContinue)) {
         New-Item -Path $Path -ItemType Directory -Name $Folder -Force
     }
-    
-    return (Get-Item -Path "$Path\$Folder")
+    Get-Item -Path "$Path\$Folder"
+    return "$Path\$Folder"
 }
 
 
@@ -48,8 +50,8 @@ function Create-Folder {
 
 function Download {
     param (
-        [string]$From = $url,
-        [string]$To = $path
+        [string]$From,
+        [string]$To
     )
     Robocopy.exe $From $to * /b /s
 }
@@ -80,12 +82,12 @@ function Windows-Register {
         Set-ItemProperty -Path $RegKeyDatamart -Name "db_archivo" -Value "rgn_BI-DM.dsn" -Force
     }
 
-    return (Get-ItemProperty -Path $RegKeyDatamart | Format-List -Property *)
+    Get-ItemProperty -Path $RegKeyDatamart | Format-List -Property *
 }
 
 function Make-SymLink {
     param (
-        [string]$Destination = $Desktop
+        [string]$Destination
     )
     Remove-Item -Path "$Destination\DATAMART Menu" -Force -ErrorAction SilentlyContinue
 
