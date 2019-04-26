@@ -1,7 +1,7 @@
 ﻿$Computers = Get-ADComputer -Filter * -Properties * | Where-Object {$_.IPv4Address -ne $null}
 
 $cred = D:\Powershell_Scripts\Credentials.ps1
-$Path = "D:\Instaladores\Agents\Fusion-agent\FI.ps1"
+$Path = ".\FI.ps1"
 
 $Total = $Computers.Count
 
