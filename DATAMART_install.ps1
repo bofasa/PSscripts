@@ -33,6 +33,7 @@ function main {
     Create-Folder -Folder $InstallDir -Path $User_Documents
     Download -From $url -To "$User_Documents\$InstallDir"
     Windows-Register -Folder $InstallDir -UserName $UserName
+    Make-SymLink -Destination $User_Desktop -Source "$User_Documents\$InstallDir"
 }
 
 
@@ -92,15 +93,11 @@ function Windows-Register {
 
 function Make-SymLink {
     param (
-        [string]$Destination
+        [string]$Destination,
+        [string]$Source
     )
     Remove-Item -Path "$Destination\DATAMART Menu" -Force -ErrorAction SilentlyContinue
-
-    if (-Not (Get-Item -Path "$Destination\DATAMART Menu" -ErrorAction SilentlyContinue)){
-        New-Item -ItemType SymbolicLink -Path $Destination -Name "DATAMART Menu" -Value "$path\menu.xlsm" -Force
-    } else {
-        Write-Host "Acceso Directo ya existe"
-    }
+    New-Item -ItemType SymbolicLink -Path $Destination -Name "DATAMART Menu" -Value "$Source\menu.xlsm" -Force -
 }
 
 main
