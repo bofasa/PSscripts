@@ -98,7 +98,7 @@ function Make-SymLink {
         [string]$Source
     )
     Remove-Item -Path "$Destination\DATAMART Menu" -Force -ErrorAction SilentlyContinue
-    New-Item -ItemType SymbolicLink -Path $Destination -Name "DATAMART Menu" -Value "$Source\menu.xlsm" -Force -
+    New-Item -ItemType SymbolicLink -Path $Destination -Name "DATAMART Menu" -Value "$Source\menu.xlsm" -Force
 }
 
 main
