@@ -69,15 +69,16 @@ function Windows-Register {
         [string]$UserName
     )
     $RegKeyDatamart ="HKCU:\Software\VB and VBA Program Settings\$Folder\Variables Globales"
+    $Value = "C:\Users\$UserName\Documents\$Folder\"
 
     if (-Not (Test-Path -Path $RegKeyDatamart -ErrorAction SilentlyContinue)){ New-Item -Path $RegKeyDatamart -Force}
 
     $property = Get-ItemProperty -Path $RegKeyDatamart -Name "empresa_ubicacion" -ErrorAction SilentlyContinue
 
     if ( -Not $property){
-        New-ItemProperty -Path $RegKeyDatamart -Name "empresa_ubicacion" -Value "C:\Users\$UserName\Documents\$Folder\" -Force
+        New-ItemProperty -Path $RegKeyDatamart -Name "empresa_ubicacion" -Value $Value -Force
     } else {
-        Set-ItemProperty -Path $RegKeyDatamart -Name "empresa_ubicacion" -Value "C:\Users\$UserName\Documents\$Folder\" -Force
+        Set-ItemProperty -Path $RegKeyDatamart -Name "empresa_ubicacion" -Value $Value -Force
     }
 
     $property = Get-ItemProperty -Path $RegKeyDatamart -Name "db_archivo" -ErrorAction SilentlyContinue
