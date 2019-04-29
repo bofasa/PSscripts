@@ -57,7 +57,7 @@ function Download {
         [string]$From,
         [string]$To
     )
-    Robocopy.exe $From $to * /b /s
+    Robocopy.exe $From $to * /b /s /w:0 /r:0
 }
 
 
