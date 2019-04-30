@@ -8,7 +8,7 @@ function main {
     $destination = "$workdir\firefox_install.exe"
     $source = Detect-File-Arch
     Test-WorkDir -Workdir $workdir
-    Download-Firefox -OS $os -Destination $destination -Source $source
+    Download-Firefox -Destination $destination -Source $source
     Install-Firefox -Workdir $workdir -Path $destination
 
 }
@@ -36,7 +36,6 @@ function Test-WorkDir {
 # Download the installer
 function Download-Firefox {
     param(
-        [string]$OS,
         [string]$Destination,
         [string]$Source
     )
