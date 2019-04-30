@@ -14,12 +14,9 @@ function main {
 }
 
 function Detect-File-Arch{
-    $Architecture = $env:PROCESSOR_ARCHITECTURE 
-    if ($Architecture -eq "AMD64"){
-        return ("https://download.mozilla.org/?product=firefox-latest-ssl&os=win64&lang=es-MX")
-    } else {
-        return ("https://download.mozilla.org/?product=firefox-latest-ssl&os=win&lang=es-MX")
-    }  
+    $Architecture = $env:PROCESSOR_ARCHITECTURE
+    if ($Architecture -eq "AMD64"){$os = "win64"} else {$os = "win"}
+    return ("https://download.mozilla.org/?product=firefox-latest-ssl&os=$os&lang=es-MX")
 }
 
 function Test-WorkDir {
