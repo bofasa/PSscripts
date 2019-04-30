@@ -3,6 +3,10 @@
 
 # Path for the workdir
 
+Param(
+    [Parameter(Mandatory=$true)]
+    [string]$Server = "https://download.mozilla.org"
+)
 function main {
     $workdir = "c:\installer\"
     $destination = "$workdir\firefox_install.exe"
@@ -16,7 +20,7 @@ function main {
 function Detect-File-Arch{
     $Architecture = $env:PROCESSOR_ARCHITECTURE
     if ($Architecture -eq "AMD64"){$os = "win64"} else {$os = "win"}
-    return ("https://download.mozilla.org/?product=firefox-latest-ssl&os=$os&lang=es-MX")
+    return ("$Server/?product=firefox-latest-ssl&os=$os&lang=es-MX")
 }
 
 function Test-WorkDir {
