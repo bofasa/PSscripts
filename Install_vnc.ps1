@@ -2,6 +2,7 @@
 
 # Path for the workdir
 Param(
+    [Parameter(Mandatory=$true)]
     [string]$Server,
     [string]$Version
 )
