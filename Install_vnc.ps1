@@ -2,7 +2,8 @@
 
 # Path for the workdir
 Param(
-    [string]$Server
+    [string]$Server,
+    [string]$Version
 )
 function main {
 

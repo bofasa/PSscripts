@@ -19,7 +19,8 @@
 Param(
     [Parameter(Mandatory=$true)]
     [string]$UserName=$env:USERNAME,
-    [string]$Server = "192.200.9.223",
+    [Parameter(Mandatory=$true)]
+    [string]$Server,
     [string]$ComputerName = "localhost"
 )
 
