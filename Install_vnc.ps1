@@ -11,7 +11,7 @@ function main {
     $file = Detect-File-Arch -Version $Version
     $destination = "$workdir\$file"
 
-    if ($Server -match "http") {
+    if ($Server -match "https") {
         $source = "$Server/download/$Version/$file"
     } else {
         $source = "\\$Server\vnc\releases\download\$Version\$file"
