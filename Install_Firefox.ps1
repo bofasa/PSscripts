@@ -10,14 +10,16 @@ Param(
 function main {
     $workdir = "c:\installer\"
     $destination = "$workdir\firefox_install.exe"
-    $source = Detect-File-Arch
+    $source = Detect-File-Arch -Server $Server
     Test-WorkDir -Workdir $workdir
     Download-Firefox -Destination $destination -Source $source
     Install-Firefox -Workdir $workdir -Path $destination
-
 }
 
 function Detect-File-Arch{
+    param (
+        [string]$Server
+    )
     $Architecture = $env:PROCESSOR_ARCHITECTURE
     if ($Architecture -eq "AMD64"){$os = "win64"} else {$os = "win"}
     return ("$Server/?product=firefox-latest-ssl&os=$os&lang=es-MX")
@@ -43,9 +45,7 @@ function Download-Firefox {
         [string]$Destination,
         [string]$Source
     )
-
-    # Check if Invoke-Webrequest exists otherwise execute WebClient
-    
+    # Check if Invoke-Webrequest exists otherwise execute WebClient   
     if (Get-Command 'Invoke-Webrequest')
     {
         Invoke-WebRequest $source -OutFile $destination
@@ -62,15 +62,10 @@ function Install-Firefox {
         [string]$Workdir,
         [string]$Path
     )
-
     Start-Process -FilePath $Path -ArgumentList "/S"
-
     # Wait XX Seconds for the installation to finish
-
     Start-Sleep -s 60
-
     # Remove the installer
-
     Remove-Item -Force $workdir\firefox*    
 }
 
