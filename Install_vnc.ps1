@@ -3,15 +3,20 @@
 # Path for the workdir
 Param(
     [Parameter(Mandatory=$true)]
-    [string]$Server = "https://www.tightvnc.com/",
+    [string]$Server = "https://www.tightvnc.com",
     [string]$Version = "2.8.11"
 )
 function main {
     $workdir = "c:\installer\"
     $file = Detect-File-Arch -Version $Version
     $destination = "$workdir\$file"
-    #$source = "\\$Server\vnc\releases\download\2.8.11\$file"
-    $source = "$Server/download/$Version/$file"
+
+    if ($Server -match "http") {
+        $source = "$Server/download/$Version/$file"
+    } else {
+        $source = "\\$Server\vnc\releases\download\$Version\$file"
+    }
+
     Test-WorkDir -Workdir $workdir
     Download-VNC -Destination $destination -Source $source 
     Install-VNC -Workdir $workdir -Path $destination -File $file
