@@ -10,7 +10,13 @@ Param(
 function main {
     $workdir = "c:\installer\"
     $destination = "$workdir\firefox_install.exe"
-    $source = Detect-File-Arch -Server $Server
+    $file = Detect-File-Arch -Server $Server
+
+    if ($Server -match "https") {
+        $source = "$Server/$file"
+    } #else {
+        #$source = "\\$Server\firefox\releases\download\$file"
+    #}
     Test-WorkDir -Workdir $workdir
     Download-Firefox -Destination $destination -Source $source
     Install-Firefox -Workdir $workdir -Path $destination
@@ -22,7 +28,7 @@ function Detect-File-Arch{
     )
     $Architecture = $env:PROCESSOR_ARCHITECTURE
     if ($Architecture -eq "AMD64"){$os = "win64"} else {$os = "win"}
-    return ("$Server/?product=firefox-latest-ssl&os=$os&lang=es-MX")
+    return ("/?product=firefox-latest-ssl&os=$os&lang=es-MX")
 }
 
 function Test-WorkDir {
