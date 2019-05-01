@@ -10,7 +10,7 @@ function main {
     $workdir = "c:\installer\"
     $file = Detect-File-Arch -Version $Version
     $destination = "$workdir\$file"
-    #$source = "\\$Server\Agents\vnc\releases\download\2.8.11\$file"
+    #$source = "\\$Server\vnc\releases\download\2.8.11\$file"
     $source = "$Server/download/$Version/$file"
     Test-WorkDir -Workdir $workdir
     Download-VNC -Destination $destination -Source $source 
