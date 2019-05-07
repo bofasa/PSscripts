@@ -104,7 +104,7 @@ function Install {
 	# Copy-Item -Path $Location$Installer -Destination $tmp_dir -Force -PassThru
 	Start-Sleep -Seconds 2
 	Write-Host("---- Installing...")
-	Push-Location $Perl
+	#Push-Location $Perl
 	Start-Process -Wait -PassThru -FilePath $Build -ArgumentList $Arguments
 	Pop-Location
 	Start-Sleep -Seconds 2
