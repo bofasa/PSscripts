@@ -2,7 +2,7 @@
 
 # Path for the workdir
 Param(
-    [Parameter(Mandatory=$true)]
+    [Parameter(Mandatory=$false)]
     [string]$Server = "https://www.tightvnc.com",
     [string]$Version = "2.8.11"
 )
