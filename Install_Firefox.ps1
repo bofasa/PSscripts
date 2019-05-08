@@ -4,7 +4,7 @@
 # Path for the workdir
 
 Param(
-    [Parameter(Mandatory=$true)]
+    [Parameter(Mandatory=$false)]
     [string]$Server = "https://download.mozilla.org"
 )
 function main {
