@@ -4,31 +4,36 @@
 # Path for the workdir
 
 Param(
-    [Parameter(Mandatory=$false)]
-    [string]$Server = "https://download.mozilla.org"
+    [Parameter(Mandatory=$true)]
+    [string]$Server = "https://download.mozilla.org",
+    [string]$Version = "66.0.5"
 )
 function main {
-    $workdir = "c:\installer\"
-    $destination = "$workdir\firefox_install.exe"
-    $file = Detect-File-Arch -Server $Server
+    $Destination = "c:\installer\"
+    $Source = Detect-File-Arch -Server $Server -Version $Version
 
-    if ($Server -match "https") {
-        $source = "$Server/$file"
-    } #else {
-        #$source = "\\$Server\firefox\releases\download\$file"
-    #}
-    Test-WorkDir -Workdir $workdir
-    Download-Firefox -Destination $destination -Source $source
-    Install-Firefox -Workdir $workdir -Path $destination
+    
+    Test-WorkDir -Workdir $Destination
+    Download-Firefox -Destination $Destination -Source $Source.destination -File $Source.file
+    Install-Firefox -Destination $Destination -File $Source.file
 }
 
 function Detect-File-Arch{
     param (
-        [string]$Server
+        [string]$Server,
+        [string]$Version
     )
+    [hashtable]$return = @{}
     $Architecture = $env:PROCESSOR_ARCHITECTURE
     if ($Architecture -eq "AMD64"){$os = "win64"} else {$os = "win"}
-    return ("/?product=firefox-latest-ssl&os=$os&lang=es-MX")
+    if ($Server -match "https") {
+        return ("$Server/?product=firefox-latest-ssl&os=$os&lang=es-MX")
+    } else {
+        Write-Host "\\$Server\Instaladores\firefox\releases\download\$Version\Firefox_Setup_$os.exe"
+        $return.destination = "\\$Server\Instaladores\firefox\releases\download\$Version\"
+        $return.file = "Firefox_Setup_$os.exe"
+        return $return
+    }
 }
 
 function Test-WorkDir {
@@ -37,42 +42,38 @@ function Test-WorkDir {
     )
     # Check if work directory exists if not create it
     
-    If (Test-Path -Path $workdir -PathType Container)
+    If (Test-Path -Path $Workdir -PathType Container)
     {
-        Write-Host "$workdir already exists" -ForegroundColor Red
+        Write-Host "$Workdir already exists" -ForegroundColor Red
     } else {
-        New-Item -Path $workdir  -ItemType directory
+        New-Item -Path $Workdir  -ItemType directory
     }    
 }
 
 # Download the installer
 function Download-Firefox {
     param(
+        [string]$Source,
         [string]$Destination,
-        [string]$Source
+        [string]$File
     )
-    # Check if Invoke-Webrequest exists otherwise execute WebClient   
-    if (Get-Command 'Invoke-Webrequest')
-    {
-        Invoke-WebRequest $source -OutFile $destination
-    } else {
-        $WebClient = New-Object System.Net.WebClient
-        $webclient.DownloadFile($source, $destination)
-    }    
+        Robocopy.exe $Source $Destination $File /b /s /w:0 /r:0
 }
 
 # Start the installation
 
 function Install-Firefox {
     param(
-        [string]$Workdir,
-        [string]$Path
+        [string]$Destination,
+        [string]$File
     )
-    Start-Process -FilePath $Path -ArgumentList "/S"
+    Start-Process -FilePath "$Destination\$File" -ArgumentList "-ms -ma" -PassThru -Wait -NoNewWindow
+
     # Wait XX Seconds for the installation to finish
     Start-Sleep -s 60
     # Remove the installer
-    Remove-Item -Force $workdir\firefox*    
+    #Remove-Item -Force "$Destination\$File"
+    Remove-Item -Force $Destination -Recurse
 }
 
 main
