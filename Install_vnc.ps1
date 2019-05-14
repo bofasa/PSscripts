@@ -2,33 +2,45 @@
 
 # Path for the workdir
 Param(
-    [Parameter(Mandatory=$false)]
+    [Parameter(Mandatory=$true)]
     [string]$Server = "https://www.tightvnc.com",
-    [string]$Version = "2.8.11"
+    [string]$Version = "2.8.11",
+    [Parameter(Mandatory=$true)]
+    [string]$Password
 )
 function main {
-    $workdir = "c:\installer\"
-    $file = Detect-File-Arch -Version $Version
-    $destination = "$workdir\$file"
+    $Destination = "c:\installer"
+    $Source = Detect-File-Arch -Version $Version -Server $Server
 
-    if ($Server -match "https") {
-        $source = "$Server/download/$Version/$file"
-    } else {
-        $source = "\\$Server\vnc\releases\download\$Version\$file"
+    if (Get-Service -Name "vncserver")
+    {
+        Stop-Service -Name vncserver -Force -PassThru
+        Set-Service -Name vncserver -StartupType Disabled -PassThru
+        Start-Sleep 2
     }
 
-    Test-WorkDir -Workdir $workdir
-    Download-VNC -Destination $destination -Source $source 
-    Install-VNC -Workdir $workdir -Path $destination -File $file
+    Test-WorkDir -Workdir $Destination
+    Download-VNC -Destination $Destination -Source $Source.destination -File $Source.file
+    Install-VNC -Destination $Destination -File $Source.file -Password $Password
 }
 
 function Detect-File-Arch{
     param (
-        [string]$Version
+        [string]$Version,
+        [string]$Server
     )
+    [hashtable]$return = @{}
+
     $Architecture = $env:PROCESSOR_ARCHITECTURE
     if ($Architecture -eq "AMD64"){$os = "64bit"} else {$os = "32bit"}
-    return ("tightvnc-$Version-gpl-setup-$os.msi")
+    if ($Server -match "https") {
+        $source = "$Server/download/$Version/$file"
+    } else {
+        $return.destination = "\\$Server\Instaladores\vnc\releases\download\"
+        $return.file = "tightvnc-$Version-gpl-setup-$os.msi"
+        #$source = "\\$Server\Instaladores\vnc\releases\download\$Version\$file"
+        return $return
+    }
 }
 
 function Test-WorkDir {
@@ -48,31 +60,30 @@ function Test-WorkDir {
 function Download-VNC {
     param(
         [string]$Source,
-        [string]$Destination
+        [string]$Destination,
+        [string]$File
     )
-    # Check if Invoke-Webrequest exists otherwise execute WebClient
-    if (Get-Command 'Invoke-Webrequest')
-    {
-        Invoke-WebRequest $Source -OutFile $Destination
-    } else {
-        $WebClient = New-Object System.Net.WebClient
-        $webclient.DownloadFile($Source, $Destination)
-    }    
+    Robocopy.exe $Source $Destination $File /b /s /w:0 /r:0
 }
 
 # Start the installation
 
 function Install-VNC {
     param(
-        [string]$Workdir,
-        [string]$Path,
-        [string]$File
+        [string]$Destination,
+        [string]$File,
+        [string]$Password
     )
-    Start-Process -FilePath msiexec.exe -ArgumentList "/I $Path /quiet /norestart ADDLOCAL='Server'"
+    Write-Host "/i $Destination\$File /quiet /norestart ADDLOCAL=Server SERVER_REGISTER_AS_SERVICE=1 SERVER_ADD_FIREWALL_EXCEPTION=1 SERVER_ALLOW_SAS=1 SET_USEVNCAUTHENTICATION=1 VALUE_OF_USEVNCAUTHENTICATION=1 SET_PASSWORD=1 VALUE_OF_PASSWORD=$Password"
+    Start-Process -FilePath msiexec.exe -ArgumentList "/i $Destination\$File /quiet /norestart ADDLOCAL=Server SERVER_REGISTER_AS_SERVICE=1 SERVER_ADD_FIREWALL_EXCEPTION=1 SERVER_ALLOW_SAS=1 SET_USEVNCAUTHENTICATION=1 VALUE_OF_USEVNCAUTHENTICATION=1 SET_PASSWORD=1 VALUE_OF_PASSWORD=$Password" -PassThru
     # Wait XX Seconds for the installation to finish
     Start-Sleep -s 60
     # Remove the installer
-    Remove-Item -Force "$Workdir\$File"
+    #Remove-Item -Force "$Destination\$File"
+    Remove-Item -Force $Destination -Recurse
+
+    Stop-Service -Name tvnserver
+    Start-Service -Name tvnserver
 }
 
 main
