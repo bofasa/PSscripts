@@ -23,6 +23,7 @@ function main {
     Test-WorkDir -Workdir $Destination
     Download-VNC -Destination $Destination -Source "\\$Server\Instaladores\vnc\" -File "dfmirage-setup-2.0.301.exe"
     Download-VNC -Destination $Destination -Source $Source.destination -File $Source.file
+    Start-Process -FilePath "$Destination\dfmirage-setup-2.0.301.exe" -ArgumentList "/verysilent /norestart" -NoNewWindow -PassThru -Wait
     Install-VNC -Destination $Destination -File $Source.file -Password $Password
 }
 
@@ -78,7 +79,7 @@ function Install-VNC {
     )
     
     $msiArgs = " /norestart /qn"
-    $AppArgs = " ADDLOCAL=Server SERVER_REGISTER_AS_SERVICE=1 SERVER_ADD_FIREWALL_EXCEPTION=1 SERVER_ALLOW_SAS=1 SET_USEVNCAUTHENTICATION=1 VALUE_OF_USEVNCAUTHENTICATION=1 SET_PASSWORD=1 VALUE_OF_PASSWORD=$Password"
+    $AppArgs = " ADDLOCAL=Server SERVER_REGISTER_AS_SERVICE=1 SERVER_ADD_FIREWALL_EXCEPTION=1 SERVER_ALLOW_SAS=1 SET_USEVNCAUTHENTICATION=1 VALUE_OF_USEVNCAUTHENTICATION=1 SET_PASSWORD=1 SET_ACCEPTHTTPCONNECTIONS=0 VALUE_OF_ACCEPTHTTPCONNECTIONS=0 SC_INSTVIEWER=0 SC_SHOWTRAYICON=1 SC_PWDSRV=$Password"
     
     $InstallPath = "$Destination\$File"
 
@@ -94,8 +95,8 @@ function Install-VNC {
     #Remove-Item -Force "$Destination\$File"
     Remove-Item -Force $Destination -Recurse
 
-    Stop-Service -Name tvnserver
-    Start-Service -Name tvnserver
+    #Stop-Service -Name tvnserver
+    #Start-Service -Name tvnserver
 }
 
 main
