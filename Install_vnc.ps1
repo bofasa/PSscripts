@@ -6,7 +6,8 @@ Param(
     [string]$Server = "https://www.tightvnc.com",
     [string]$Version = "2.8.11",
     [Parameter(Mandatory=$true)]
-    [string]$Password
+    [string]$Password,
+    [string]$Credential
 )
 function main {
     $Destination = "c:\installer"
@@ -20,6 +21,7 @@ function main {
     }
 
     Test-WorkDir -Workdir $Destination
+    Download-VNC -Destination $Destination -Source "\\$Server\Instaladores\vnc\" -File "dfmirage-setup-2.0.301.exe"
     Download-VNC -Destination $Destination -Source $Source.destination -File $Source.file
     Install-VNC -Destination $Destination -File $Source.file -Password $Password
 }
@@ -36,7 +38,7 @@ function Detect-File-Arch{
     if ($Server -match "https") {
         $source = "$Server/download/$Version/$file"
     } else {
-        $return.destination = "\\$Server\Instaladores\vnc\releases\download\"
+        $return.destination = "\\$Server\Instaladores\vnc\releases\download\$Version"
         $return.file = "tightvnc-$Version-gpl-setup-$os.msi"
         #$source = "\\$Server\Instaladores\vnc\releases\download\$Version\$file"
         return $return
@@ -74,8 +76,18 @@ function Install-VNC {
         [string]$File,
         [string]$Password
     )
-    Write-Host "/i $Destination\$File /quiet /norestart ADDLOCAL=Server SERVER_REGISTER_AS_SERVICE=1 SERVER_ADD_FIREWALL_EXCEPTION=1 SERVER_ALLOW_SAS=1 SET_USEVNCAUTHENTICATION=1 VALUE_OF_USEVNCAUTHENTICATION=1 SET_PASSWORD=1 VALUE_OF_PASSWORD=$Password"
-    Start-Process -FilePath msiexec.exe -ArgumentList "/i $Destination\$File /quiet /norestart ADDLOCAL=Server SERVER_REGISTER_AS_SERVICE=1 SERVER_ADD_FIREWALL_EXCEPTION=1 SERVER_ALLOW_SAS=1 SET_USEVNCAUTHENTICATION=1 VALUE_OF_USEVNCAUTHENTICATION=1 SET_PASSWORD=1 VALUE_OF_PASSWORD=$Password" -PassThru
+    
+    $msiArgs = " /norestart /qn"
+    $AppArgs = " ADDLOCAL=Server SERVER_REGISTER_AS_SERVICE=1 SERVER_ADD_FIREWALL_EXCEPTION=1 SERVER_ALLOW_SAS=1 SET_USEVNCAUTHENTICATION=1 VALUE_OF_USEVNCAUTHENTICATION=1 SET_PASSWORD=1 VALUE_OF_PASSWORD=$Password"
+    
+    $InstallPath = "$Destination\$File"
+
+    #Invoke-Command -ScriptBlock {
+    #    Write-Host "Installing $InstallPath with arguments $Arguments" -ForegroundColor DarkYellow
+    #    msiexec.exe /i $($InstallPath) $($msiArgs) $($AppArgs)
+    #}
+    
+    Start-Process -FilePath msiexec.exe -ArgumentList "/i $InstallPath $msiArgs $AppArgs" -PassThru -Wait -NoNewWindow
     # Wait XX Seconds for the installation to finish
     Start-Sleep -s 60
     # Remove the installer
