@@ -43,13 +43,12 @@ function Create-Folder {
         [string]$Folder,
         [string]$Path
     )
+    Write-Host "Creando Folder" -ForegroundColor DarkYellow
     if ( -Not (Test-Path -Path $Path -ErrorAction SilentlyContinue)) {
         New-Item -Path $Path -ItemType Directory -Name $Folder -Force
     }
     Get-Item -Path "$Path\$Folder"
 }
-
-
 
 # Copia DATAMART en la Carpeta Documentos del usuario
 
@@ -60,7 +59,6 @@ function Download {
     )
     Robocopy.exe $From $to * /b /s /w:0 /r:0
 }
-
 
 # Reg
 
