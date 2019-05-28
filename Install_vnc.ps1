@@ -13,7 +13,7 @@ function main {
     $Destination = "c:\installer"
     $Source = Detect-File-Arch -Version $Version -Server $Server
 
-    if (Get-Service -Name "vncserver")
+    if ((Get-Service -Name vncserver).Status -ne "Stopped")
     {
         Stop-Service -Name vncserver -Force -PassThru
         Set-Service -Name vncserver -StartupType Disabled -PassThru
@@ -21,11 +21,19 @@ function main {
     }
 
     Test-WorkDir -Workdir $Destination
-    Download-VNC -Destination $Destination -Source "\\$Server\Instaladores\vnc\" -File "dfmirage-setup-2.0.301.exe"
     Download-VNC -Destination $Destination -Source $Source.destination -File $Source.file
-    Start-Process -FilePath "$Destination\dfmirage-setup-2.0.301.exe" -ArgumentList "/verysilent /norestart" -NoNewWindow -PassThru -Wait
+    if ( -Not (Get-WmiObject Win32_PnPSignedDriver | where-Object Manufacturer -Clike "*DemoForge*")){
+        Download-VNC -Destination $Destination -Source "\\$Server\Instaladores\vnc\" -File "dfmirage-setup-2.0.301.exe"
+        Start-Process -FilePath "$Destination\dfmirage-setup-2.0.301.exe" -ArgumentList "/verysilent /norestart" -NoNewWindow -PassThru -Wait
+    }
     Install-VNC -Destination $Destination -File $Source.file -Password $Password
 }
+
+function Check_Program_Installed( $programName ) {
+    $wmi_check = (Get-WMIObject -Query "SELECT * FROM Win32_Product Where Name Like '%$programName%'").Length -gt 0
+    return $wmi_check;
+}
+
 
 function Detect-File-Arch{
     param (
@@ -41,7 +49,6 @@ function Detect-File-Arch{
     } else {
         $return.destination = "\\$Server\Instaladores\vnc\releases\download\$Version"
         $return.file = "tightvnc-$Version-gpl-setup-$os.msi"
-        #$source = "\\$Server\Instaladores\vnc\releases\download\$Version\$file"
         return $return
     }
 }
@@ -70,7 +77,6 @@ function Download-VNC {
 }
 
 # Start the installation
-
 function Install-VNC {
     param(
         [string]$Destination,
@@ -79,15 +85,9 @@ function Install-VNC {
     )
     
     $msiArgs = " /norestart /qn"
-    $AppArgs = " ADDLOCAL=Server SERVER_REGISTER_AS_SERVICE=1 SERVER_ADD_FIREWALL_EXCEPTION=1 SERVER_ALLOW_SAS=1 SET_USEVNCAUTHENTICATION=1 VALUE_OF_USEVNCAUTHENTICATION=1 SET_PASSWORD=1 SET_ACCEPTHTTPCONNECTIONS=0 VALUE_OF_ACCEPTHTTPCONNECTIONS=0 SC_INSTVIEWER=0 SC_SHOWTRAYICON=1 SC_PWDSRV=$Password"
-    
+    $AppArgs = " ADDLOCAL=Server SET_USEVNCAUTHENTICATION=1 VALUE_OF_USEVNCAUTHENTICATION=1 SET_PASSWORD=1 SC_SHOWTRAYICON=1 VALUE_OF_PASSWORD=$Password"
     $InstallPath = "$Destination\$File"
-
-    #Invoke-Command -ScriptBlock {
-    #    Write-Host "Installing $InstallPath with arguments $Arguments" -ForegroundColor DarkYellow
-    #    msiexec.exe /i $($InstallPath) $($msiArgs) $($AppArgs)
-    #}
-    
+   
     Start-Process -FilePath msiexec.exe -ArgumentList "/i $InstallPath $msiArgs $AppArgs" -PassThru -Wait -NoNewWindow
     # Wait XX Seconds for the installation to finish
     Start-Sleep -s 60
