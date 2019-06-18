@@ -6,12 +6,11 @@
 Param(
     [Parameter(Mandatory=$true)]
     [string]$Server = "https://download.mozilla.org",
-    [string]$Version = "66.0.5"
+    [string]$Version = "67.0.3"
 )
 function main {
     $Destination = "c:\installer\"
     $Source = Detect-File-Arch -Server $Server -Version $Version
-
     
     Test-WorkDir -Workdir $Destination
     Download-Firefox -Destination $Destination -Source $Source.destination -File $Source.file
@@ -57,7 +56,8 @@ function Download-Firefox {
         [string]$Destination,
         [string]$File
     )
-        Robocopy.exe $Source $Destination $File /b /s /w:0 /r:0
+        Robocopy.exe $Source $Destination $File /b /s /w:0 /r:0 /MT:12
+        #Start-BitsTransfer -Source $Source -Destination "$Destination/$File"
 }
 
 # Start the installation
